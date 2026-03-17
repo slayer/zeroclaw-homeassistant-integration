@@ -18,7 +18,6 @@ from .api import (
     ZeroClawConnectionError,
 )
 from .const import (
-    ADDON_HOSTNAME,
     ADDON_TOKEN_PATH,
     CONF_PAIRING_CODE,
     CONF_TOKEN,
@@ -62,8 +61,7 @@ class ZeroClawConfigFlow(ConfigFlow, domain=DOMAIN):
         # Auto-discover if addon token file exists
         token = await self.hass.async_add_executor_job(_read_addon_token)
         if token is not None:
-            # Use addon's internal Docker hostname (bridge network)
-            host = ADDON_HOSTNAME
+            host = DEFAULT_HOST
             port = DEFAULT_PORT
 
             await self.async_set_unique_id(f"{host}:{port}")
