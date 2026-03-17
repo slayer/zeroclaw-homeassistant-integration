@@ -3,7 +3,8 @@ DOMAIN = "zeroclaw"
 PLATFORMS = ["sensor", "binary_sensor", "conversation"]
 
 # Addon discovery
-ADDON_SLUG = "zeroclaw_assistant"
+ADDON_SLUG = "local_zeroclaw_assistant"
+ADDON_HOSTNAME = "local-zeroclaw-assistant"
 ADDON_TOKEN_PATH = "/config/zeroclaw/.bearer_token"
 
 # API endpoints
