@@ -4,7 +4,8 @@ A custom integration that connects Home Assistant to [ZeroClaw](https://github.c
 
 ## Prerequisites
 
-This integration requires the **ZeroClaw addon** to be installed and running. Install it from the [`slayer/zeroclaw-homeassistant`](https://github.com/slayer/zeroclaw-homeassistant) repository. See that repo's README for addon installation instructions.
+- **ZeroClaw addon** must be installed and running. Install it from [`slayer/zeroclaw-homeassistant`](https://github.com/slayer/zeroclaw-homeassistant).
+- (Recommended) **[Model Context Protocol Server](https://www.home-assistant.io/integrations/mcp_server/)** integration — enables ZeroClaw to control your smart home devices (lights, switches, climate, etc.). The addon auto-detects it on startup. Without it, ZeroClaw can only chat but cannot control your home.
 
 ## Installation
 
