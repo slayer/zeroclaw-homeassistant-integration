@@ -8,6 +8,7 @@ from homeassistant.components import conversation
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.intent import IntentResponse
 
 from .api import ZeroClawApiClient, ZeroClawConnectionError, ZeroClawAuthError
 from .const import DATA_CLIENT, DOMAIN
@@ -55,7 +56,7 @@ class ZeroClawConversationEntity(conversation.ConversationEntity):
         self, user_input: conversation.ConversationInput
     ) -> conversation.ConversationResult:
         """Send user message to ZeroClaw and return the response."""
-        intent_response = conversation.IntentResponse(language=user_input.language)
+        intent_response = IntentResponse(language=user_input.language)
 
         try:
             result = await self._client.async_send_message(user_input.text)
