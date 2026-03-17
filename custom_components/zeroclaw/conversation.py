@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 from homeassistant.components import conversation
+from homeassistant.components.conversation import ConversationEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -32,6 +33,7 @@ class ZeroClawConversationEntity(conversation.ConversationEntity):
 
     _attr_has_entity_name = True
     _attr_name = "ZeroClaw"
+    _attr_supported_features = ConversationEntityFeature.CONTROL
 
     def __init__(
         self,
