@@ -3,11 +3,11 @@
     "step": {
       "manual": {
         "title": "Connect to ZeroClaw",
-        "description": "Enter the ZeroClaw gateway address and pairing code. Find the pairing code in ZeroClaw logs or run `zeroclaw gateway` to see it.",
+        "description": "Enter the ZeroClaw gateway address. Leave pairing code empty if pairing is disabled (default for the addon).",
         "data": {
           "host": "Host",
           "port": "Port",
-          "pairing_code": "Pairing Code"
+          "pairing_code": "Pairing Code (optional)"
         }
       }
     },

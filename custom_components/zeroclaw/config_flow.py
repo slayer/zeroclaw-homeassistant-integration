@@ -32,7 +32,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST, default=DEFAULT_HOST): str,
         vol.Required(CONF_PORT, default=DEFAULT_PORT): int,
-        vol.Required(CONF_PAIRING_CODE): str,
+        vol.Optional(CONF_PAIRING_CODE): str,
     }
 )
 
@@ -56,7 +56,7 @@ class ZeroClawConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Try addon auto-discovery first, fall back to manual pairing."""
+        """Try addon auto-discovery first, fall back to manual setup."""
 
         # Auto-discover if addon token file exists
         token = await self.hass.async_add_executor_job(_read_addon_token)
@@ -90,37 +90,63 @@ class ZeroClawConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_manual(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle manual setup: host, port, pairing code."""
+        """Handle manual setup: host, port, optional pairing code."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
             host = user_input[CONF_HOST]
             port = user_input[CONF_PORT]
-            pairing_code = user_input[CONF_PAIRING_CODE]
+            pairing_code = user_input.get(CONF_PAIRING_CODE, "").strip()
 
             await self.async_set_unique_id(f"{host}:{port}")
             self._abort_if_unique_id_configured()
 
             session = async_get_clientsession(self.hass)
-            client = ZeroClawApiClient(host=host, port=port, session=session)
-            try:
-                token = await client.async_pair(pairing_code)
-            except ZeroClawConnectionError:
-                errors["base"] = "cannot_connect"
-            except ZeroClawAuthError:
-                errors["base"] = "invalid_auth"
-            except Exception:
-                _LOGGER.exception("Unexpected error during pairing")
-                errors["base"] = "unknown"
+
+            if pairing_code:
+                # Pair with code to get a token
+                client = ZeroClawApiClient(host=host, port=port, session=session)
+                try:
+                    token = await client.async_pair(pairing_code)
+                except ZeroClawConnectionError:
+                    errors["base"] = "cannot_connect"
+                except ZeroClawAuthError:
+                    errors["base"] = "invalid_auth"
+                except Exception:
+                    _LOGGER.exception("Unexpected error during pairing")
+                    errors["base"] = "unknown"
+                else:
+                    return self.async_create_entry(
+                        title=f"ZeroClaw ({host}:{port})",
+                        data={
+                            CONF_HOST: host,
+                            CONF_PORT: port,
+                            CONF_TOKEN: token,
+                        },
+                    )
             else:
-                return self.async_create_entry(
-                    title=f"ZeroClaw ({host}:{port})",
-                    data={
-                        CONF_HOST: host,
-                        CONF_PORT: port,
-                        CONF_TOKEN: token,
-                    },
+                # No pairing code — try connecting directly (pairing may be disabled)
+                # Use pre-seeded token if available, otherwise connect without auth
+                token = await self.hass.async_add_executor_job(_read_addon_token)
+                client = ZeroClawApiClient(
+                    host=host, port=port, token=token, session=session
                 )
+                try:
+                    await client.async_get_health()
+                except ZeroClawConnectionError:
+                    errors["base"] = "cannot_connect"
+                except Exception:
+                    _LOGGER.exception("Unexpected error during health check")
+                    errors["base"] = "unknown"
+                else:
+                    return self.async_create_entry(
+                        title=f"ZeroClaw ({host}:{port})",
+                        data={
+                            CONF_HOST: host,
+                            CONF_PORT: port,
+                            CONF_TOKEN: token or "",
+                        },
+                    )
 
         return self.async_show_form(
             step_id="manual",
